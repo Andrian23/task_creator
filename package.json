@@ -3,7 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "dev": "node --env-file=.env.local --watch dev-server.js",
+    "poll": "node --env-file=.env.local dev-server.js",
+    "test": "node test/smoke.mjs"
+  },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "mammoth": "^1.12.0",
+    "pdf-parse": "^2.4.5"
   }
 }
