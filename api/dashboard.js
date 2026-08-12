@@ -1,14 +1,13 @@
 const MAX_PAGES = 20;
+const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || '1742';
 
 function unauthorized(res) {
   res.status(401).json({ error: 'UNAUTHORIZED' });
 }
 
 function isAuthorized(req) {
-  const expected = process.env.DASHBOARD_PASSWORD;
-  if (!expected) return false;
   const provided = req.headers['x-dashboard-password'];
-  return typeof provided === 'string' && provided === expected;
+  return typeof provided === 'string' && provided === DASHBOARD_PASSWORD;
 }
 
 async function clickUp(path) {
@@ -66,10 +65,6 @@ function normalizeTask(task) {
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     res.status(405).json({ error: 'METHOD_NOT_ALLOWED' });
-    return;
-  }
-  if (!process.env.DASHBOARD_PASSWORD) {
-    res.status(503).json({ error: 'DASHBOARD_NOT_CONFIGURED' });
     return;
   }
   if (!isAuthorized(req)) {
