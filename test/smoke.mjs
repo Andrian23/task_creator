@@ -33,6 +33,7 @@ process.env.UPSTASH_REDIS_TOKEN = 'TEST_REDIS_TOKEN';
 
 const redisStore = new Map();
 const sentMessages = [];
+const createdTasks = [];
 
 globalThis.fetch = async (url, opts = {}) => {
   const u = String(url);
@@ -72,7 +73,7 @@ globalThis.fetch = async (url, opts = {}) => {
             action: 'create',
             title: 'Зняти відео про X',
             title_source: 'user',
-            description: 'Зняти відео про X, дедлайн пʼятниця',
+            description: 'Зняти відео про X\nhttps://example.com/reference',
             due_datetime: '2026-08-14T18:00:00+07:00',
             priority: 'high',
           };
@@ -86,6 +87,7 @@ globalThis.fetch = async (url, opts = {}) => {
     if (u.endsWith('/member')) {
       return jsonResponse({ members: [{ id: 42, username: 'Оля' }] });
     }
+    createdTasks.push(JSON.parse(opts.body));
     return jsonResponse({ id: 'abc123', url: 'https://app.clickup.com/t/abc123' }, 200);
   }
 
@@ -138,17 +140,17 @@ await handler(
 assert.strictEqual(sentMessages.length, 2);
 assert.strictEqual(sentMessages[1].text, 'На коли дедлайн?');
 
-// Turn 3: user provides deadline -> model translates -> bot shows a preview
+// Turn 3: user provides deadline -> bot asks how to handle detected links
 await handler(
   { method: 'POST', body: { update_id: 103, message: { chat: { id: 1 }, text: 'до пʼятниці' } } },
   fakeRes()
 );
 assert.strictEqual(sentMessages.length, 3);
-assert.match(sentMessages[2].text, /Переглянь таску/);
-assert.strictEqual(sentMessages[2].reply_markup.inline_keyboard[0][0].callback_data, 'review:approve');
-assert.ok(redisStore.has('session:1'), 'pending task should wait for review');
+assert.match(sentMessages[2].text, /посилання/i);
+assert.strictEqual(sentMessages[2].reply_markup.inline_keyboard[2][0].callback_data, 'links:incognito');
+assert.ok(redisStore.has('session:1'), 'pending task should wait for link handling');
 
-// Turn 4: user approves preview -> bot asks for an assignee
+// Turn 4: user marks links as incognito-only -> bot asks for an assignee
 await handler(
   {
     method: 'POST',
@@ -156,7 +158,7 @@ await handler(
       update_id: 104,
       callback_query: {
         id: 'callback-1',
-        data: 'review:approve',
+        data: 'links:incognito',
         message: { chat: { id: 1 } },
       },
     },
@@ -166,8 +168,9 @@ await handler(
 assert.strictEqual(sentMessages.length, 4);
 assert.match(sentMessages[3].text, /На кого призначити/);
 assert.strictEqual(sentMessages[3].reply_markup.inline_keyboard[0][0].callback_data, 'assign:42');
+assert.strictEqual(sentMessages[3].reply_markup.inline_keyboard[1][0].callback_data, 'assign:none');
 
-// Turn 5: user selects a ClickUp member -> task is created and assigned
+// Turn 5: user selects no assignee -> task is created without an assignee
 await handler(
   {
     method: 'POST',
@@ -175,7 +178,7 @@ await handler(
       update_id: 105,
       callback_query: {
         id: 'callback-2',
-        data: 'assign:42',
+        data: 'assign:none',
         message: { chat: { id: 1 } },
       },
     },
@@ -184,6 +187,9 @@ await handler(
 );
 assert.strictEqual(sentMessages.length, 5);
 assert.match(sentMessages[4].text, /app\.clickup\.com\/t\/abc123/);
+assert.match(sentMessages[4].text, /без виконавця/);
+assert.ok(!('assignees' in createdTasks[0]));
+assert.match(createdTasks[0].markdown_content, /інкогніто/);
 assert.ok(!redisStore.has('session:1'), 'session should be cleared after task creation');
 
 console.log('OK - all smoke assertions passed');

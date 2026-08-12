@@ -20,10 +20,8 @@ import { runAssistant } from '../lib/openai.js';
 import {
   createClickUpTask,
   getClickUpMembers,
-  uploadClickUpAttachments,
 } from '../lib/clickup.js';
 import { extractDocumentText } from '../lib/documents.js';
-import { prepareVideoAttachments } from '../lib/video.js';
 import {
   protectVerbatimSections,
   restoreVerbatimSections,
@@ -52,8 +50,38 @@ async function showAssigneeSelection(chatId, task) {
     text: member.username,
     callback_data: `assign:${member.id}`,
   }]);
+  keyboard.push([{ text: 'Без виконавця', callback_data: 'assign:none' }]);
   await sendMessage(chatId, `На кого призначити таску «${task.title}»?`, {
     reply_markup: { inline_keyboard: keyboard },
+  });
+}
+
+function containsLinks(text = '') {
+  return /https?:\/\/[^\s<>"]+/i.test(text);
+}
+
+function removeLinks(text = '') {
+  return text
+    .replace(/https?:\/\/[^\s<>"')\]]+/gi, '')
+    .replace(/[ \t]+$/gm, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+async function continueAfterTaskPrepared(chatId, task) {
+  if (!containsLinks(task.description)) {
+    await showAssigneeSelection(chatId, task);
+    return;
+  }
+  await setSession(chatId, { pendingTask: task });
+  await sendMessage(chatId, 'У задачі є посилання. Що з ними зробити?', {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: 'Залишити', callback_data: 'links:keep' }],
+        [{ text: 'Видалити', callback_data: 'links:remove' }],
+        [{ text: 'Залишити — лише інкогніто', callback_data: 'links:incognito' }],
+      ],
+    },
   });
 }
 
@@ -74,6 +102,28 @@ export default async function handler(req, res) {
     }
     const callback = update && update.callback_query;
 
+    if (callback?.data?.startsWith('links:')) {
+      const chatId = callback.message.chat.id;
+      const session = await getSession(chatId);
+      if (!session?.pendingTask) {
+        await answerCallbackQuery(callback.id, 'Цей вибір уже неактуальний.');
+        res.status(200).json({ ok: true });
+        return;
+      }
+      const choice = callback.data.slice('links:'.length);
+      const task = { ...session.pendingTask };
+      if (choice === 'remove') task.description = removeLinks(task.description);
+      if (choice === 'incognito') task.description = addIncognitoFlags(task.description);
+      await answerCallbackQuery(callback.id, choice === 'remove'
+        ? 'Посилання видалено'
+        : choice === 'incognito'
+          ? 'Додано позначку про інкогніто'
+          : 'Посилання залишено');
+      await showAssigneeSelection(chatId, task);
+      res.status(200).json({ ok: true });
+      return;
+    }
+
     if (callback?.data === 'review:approve') {
       const chatId = callback.message.chat.id;
       const session = await getSession(chatId);
@@ -91,7 +141,9 @@ export default async function handler(req, res) {
       const chatId = callback.message.chat.id;
       const assigneeId = callback.data.slice('assign:'.length);
       const session = await getSession(chatId);
-      const member = session?.members?.find((item) => String(item.id) === assigneeId);
+      const member = assigneeId === 'none'
+        ? { id: null, username: 'нікого' }
+        : session?.members?.find((item) => String(item.id) === assigneeId);
 
       if (!session?.pendingTask || !member) {
         await answerCallbackQuery(callback.id, 'Цей вибір уже неактуальний.');
@@ -108,25 +160,18 @@ export default async function handler(req, res) {
       }
 
       await answerCallbackQuery(callback.id, `Виконавець: ${member.username}`);
-      const { attachments } = await prepareVideoAttachments(
-        session.pendingTask.description
-      );
       const { ok, data } = await createClickUpTask({
         ...session.pendingTask,
         assigneeId: member.id,
       });
 
       if (ok) {
-        const upload = await uploadClickUpAttachments(data.id, attachments);
         await clearSession(chatId);
-        const attachmentStatus = attachments.length
-          ? upload.ok
-            ? `\nПрикріплено відео: ${attachments.length}.`
-            : '\nТаску створено, але відео не вдалося прикріпити.'
-          : '';
         await sendMessage(
           chatId,
-          `Готово! Таска призначена на ${member.username}:${attachmentStatus}\n${data.url}`
+          assigneeId === 'none'
+            ? `Готово! Таска створена без виконавця.\n${data.url}`
+            : `Готово! Таска призначена на ${member.username}.\n${data.url}`
         );
       } else {
         await sendMessage(chatId, `Помилка ClickUp: ${JSON.stringify(data)}`);
@@ -298,10 +343,10 @@ export default async function handler(req, res) {
     const result = await runAssistant(messages);
 
     if (result.action === 'create') {
-      result.description = addIncognitoFlags(restoreVerbatimSections(
+      result.description = restoreVerbatimSections(
         result.description,
         existing.protectedSegments || []
-      ));
+      );
     }
 
     if (result.action === 'ask') {
@@ -313,15 +358,7 @@ export default async function handler(req, res) {
     }
 
     if (result.action === 'create') {
-      await setSession(chatId, {
-        messages,
-        awaitingField: 'review',
-        pendingTask: result,
-        protectedSegments: existing.protectedSegments || [],
-      });
-      await sendMessage(chatId, taskPreview(result), {
-        reply_markup: { inline_keyboard: [[{ text: '✅ Все ок', callback_data: 'review:approve' }]] },
-      });
+      await continueAfterTaskPrepared(chatId, result);
       res.status(200).json({ ok: true });
       return;
     }
