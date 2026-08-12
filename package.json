@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node --env-file=.env.local --watch dev-server.js",
     "poll": "node --env-file=.env.local dev-server.js",
-    "test": "node test/smoke.mjs"
+    "test": "node test/smoke.mjs && node test/dashboard.mjs"
   },
   "engines": {
     "node": "22.x"

@@ -33,6 +33,13 @@ TXT/Markdown/CSV або поєднанням файла з коротким пі
 | `OPENAI_API_KEY` | ключ OpenAI (використовується `gpt-4o-mini`) |
 | `UPSTASH_REDIS_URL` | REST URL безкоштовної Upstash Redis бази (для пам'яті діалогу) |
 | `UPSTASH_REDIS_TOKEN` | REST token тієї ж бази |
+| `DASHBOARD_PASSWORD` | спільний пароль для management dashboard на `/dashboard` |
+
+## Management dashboard
+
+Сторінка `/dashboard` показує задачі поточного ClickUp List, статуси, дедлайни,
+навантаження виконавців і прострочення. Дані доступні лише після введення
+`DASHBOARD_PASSWORD`; ClickUp API token ніколи не передається у браузер.
 
 ### Звідки взяти Upstash
 
