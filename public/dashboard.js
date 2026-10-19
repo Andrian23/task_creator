@@ -18,12 +18,13 @@ async function load(password = state.password) {
 }
 
 function render() {
-  const { pending, projects, mappings, members, assigneeTags } = state.data;
+  const { pending, projects, mappings, members, assigneeTags, ignored } = state.data;
   $('#storageAlert').classList.toggle('hidden', !state.data.storageError);
   $('#metrics').innerHTML = [['Чекають matching', pending.length], ['Активні проєкти', projects.length], ['Привʼязані чати', mappings.length]].map(([label, count]) => `<article class="metric"><p>${label}</p><strong>${count}</strong></article>`).join('');
-  $('#pending').innerHTML = pending.map((item) => `<div class="chat-card"><strong>${escapeHtml(item.event.topic || item.event.author || item.event.roomId)}</strong><p>${escapeHtml(item.event.message)}</p><small>${escapeHtml(item.event.author)}</small><div class="match-row"><select data-select="${item.nonce}"><option value="">Оберіть проєкт</option>${projects.map((project) => `<option value="${project.id}" ${item.candidateIds.includes(project.id) ? 'data-suggested="true"' : ''}>${item.candidateIds.includes(project.id) ? '★ ' : ''}${escapeHtml(project.name)}</option>`).join('')}</select><button data-match="${item.nonce}">Привʼязати</button></div></div>`).join('') || '<p class="empty">Нових чатів для зіставлення немає.</p>';
+  $('#pending').innerHTML = pending.map((item) => `<div class="chat-card"><strong>${escapeHtml(item.event.topic || item.event.author || item.event.roomId)}</strong><p>${escapeHtml(item.event.message)}</p><small>${escapeHtml(item.event.author)}</small><div class="match-row"><select data-select="${item.nonce}"><option value="">Оберіть проєкт</option>${projects.map((project) => `<option value="${project.id}" ${item.candidateIds.includes(project.id) ? 'data-suggested="true"' : ''}>${item.candidateIds.includes(project.id) ? '★ ' : ''}${escapeHtml(project.name)}</option>`).join('')}</select><button data-match="${item.nonce}">Привʼязати</button><button class="danger" data-archive="${item.nonce}">Архівувати</button></div></div>`).join('') || '<p class="empty">Нових чатів для зіставлення немає.</p>';
   renderProjects();
   $('#mappings').innerHTML = mappings.map((mapping) => `<div class="mapping"><div><strong>${escapeHtml(mapping.taskName)}</strong><small>${escapeHtml(mapping.roomId)}</small></div><button class="danger" data-delete="${escapeHtml(mapping.roomId)}">Видалити</button></div>`).join('') || '<p class="empty">Звʼязків ще немає.</p>';
+  $('#ignored').innerHTML = ignored.map((room) => `<div class="mapping"><div><strong>${escapeHtml(room.label || room.roomId)}</strong><small>${escapeHtml(room.roomId)}</small></div><button data-restore="${escapeHtml(room.roomId)}">Повернути</button></div>`).join('') || '<p class="empty">Архів порожній.</p>';
   $('#tags').innerHTML = members.map((member) => `<label><span>${escapeHtml(member.name)}</span><select data-member="${member.id}"><option value="">Без тега</option><option value="@annaaaaa_kk" ${assigneeTags[member.id] === '@annaaaaa_kk' ? 'selected' : ''}>@annaaaaa_kk</option><option value="@karynakrnnk" ${assigneeTags[member.id] === '@karynakrnnk' ? 'selected' : ''}>@karynakrnnk</option></select></label>`).join('');
   bindActions();
 }
@@ -42,6 +43,12 @@ function bindActions() {
   });
   document.querySelectorAll('[data-delete]').forEach((button) => button.onclick = async () => {
     await api({ method: 'POST', body: JSON.stringify({ action: 'deleteMapping', roomId: button.dataset.delete }) }); await load();
+  });
+  document.querySelectorAll('[data-archive]').forEach((button) => button.onclick = async () => {
+    await api({ method: 'POST', body: JSON.stringify({ action: 'archiveRoom', nonce: button.dataset.archive }) }); await load();
+  });
+  document.querySelectorAll('[data-restore]').forEach((button) => button.onclick = async () => {
+    await api({ method: 'POST', body: JSON.stringify({ action: 'restoreRoom', roomId: button.dataset.restore }) }); await load();
   });
 }
 

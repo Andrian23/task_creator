@@ -22,5 +22,5 @@ function result() { const state = { headers: {} }; return { status(code) { state
 const { default: handler } = await import('../api/dashboard.js');
 
 const denied = result(); await handler({ method: 'GET', headers: { 'x-dashboard-password': 'wrong' } }, denied); assert.strictEqual(denied.state.status, 401);
-const allowed = result(); await handler({ method: 'GET', headers: { 'x-dashboard-password': 'management-secret' } }, allowed); assert.strictEqual(allowed.state.status, 200); assert.strictEqual(allowed.state.body.projects[0].name, 'Project Alpha'); assert.deepStrictEqual(allowed.state.body.pending, []);
+const allowed = result(); await handler({ method: 'GET', headers: { 'x-dashboard-password': 'management-secret' } }, allowed); assert.strictEqual(allowed.state.status, 200); assert.strictEqual(allowed.state.body.projects[0].name, 'Project Alpha'); assert.deepStrictEqual(allowed.state.body.pending, []); assert.deepStrictEqual(allowed.state.body.ignored, []);
 console.log('OK - dashboard assertions passed');
