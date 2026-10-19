@@ -41,6 +41,10 @@ TXT/Markdown/CSV або поєднанням файла з коротким пі
 | `DASHBOARD_PASSWORD` | спільний пароль для management dashboard на `/dashboard` |
 | `TELEGRAM_UPWORK_CHAT_ID` | ID Telegram-групи для Upwork-сповіщень і вибору проєкту |
 
+Також підтримуються стандартні назви інтеграцій Vercel/Upstash:
+`UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` або
+`KV_REST_API_URL` + `KV_REST_API_TOKEN`.
+
 ## Management dashboard
 
 Сторінка `/dashboard` показує нові Upwork-чати, активні ClickUp-проєкти та
