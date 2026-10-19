@@ -27,19 +27,26 @@ async function settings() {
 async function forwardEvents(events) {
   const config = await settings();
   if (!config.enabled || !config.backendUrl) return { ok: false, error: "NOT_CONFIGURED" };
+  const stored = await chrome.storage.local.get("roomFingerprints");
+  const fingerprints = stored.roomFingerprints || {};
   const results = [];
   for (const event of events) {
+    const fingerprint = [event.messageId, event.author, event.message, event.timestamp].join("|");
+    if (fingerprints[event.roomId] === fingerprint) continue;
+    const discovery = !fingerprints[event.roomId];
     try {
       const response = await fetch(endpoint(config.backendUrl), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(event)
+        body: JSON.stringify({ ...event, discovery })
       });
       results.push({ ok: response.ok, status: response.status });
+      if (response.ok) fingerprints[event.roomId] = fingerprint;
     } catch (error) {
       results.push({ ok: false, error: error.message });
     }
   }
+  await chrome.storage.local.set({ roomFingerprints: fingerprints });
   return { ok: results.every((result) => result.ok), results };
 }
 

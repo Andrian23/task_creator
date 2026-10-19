@@ -3,6 +3,8 @@ import { eventFingerprint, findProjectCandidates, validateUpworkEvent } from '..
 
 const event = validateUpworkEvent({ roomId: 'room_1', author: 'Client', topic: 'Project Alpha', message: 'Hello', url: 'https://www.upwork.com/ab/messages/rooms/room_1' });
 assert.ok(event);
+assert.strictEqual(event.discovery, false);
+assert.strictEqual(validateUpworkEvent({ roomId: 'room_2', message: 'Existing', discovery: true }).discovery, true);
 assert.strictEqual(validateUpworkEvent({ roomId: '', message: 'Hello' }), null);
 assert.strictEqual(validateUpworkEvent({ roomId: 'room_1', message: 'Hello', url: 'https://evil.example' }).url, '');
 assert.strictEqual(eventFingerprint(event), eventFingerprint({ ...event }));
