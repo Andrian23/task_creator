@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Upwork Project Tracker",
+  "version": "2.0.0",
+  "description": "Passively reads loaded Upwork Messages and forwards new messages to the project backend.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://*.vercel.app/*",
+    "http://localhost:*/*"
+  ],
+  "background": { "service_worker": "src/background.js" },
+  "content_scripts": [{
+    "matches": ["https://www.upwork.com/ab/messages/*"],
+    "js": ["src/content.js"],
+    "run_at": "document_idle"
+  }],
+  "options_page": "options/options.html",
+  "action": {
+    "default_title": "Upwork Project Tracker",
+    "default_popup": "popup/popup.html"
+  }
+}

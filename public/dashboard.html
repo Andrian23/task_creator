@@ -1,86 +1,14 @@
 <!doctype html>
-<html lang="uk">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="robots" content="noindex,nofollow">
-  <title>Creator Operations</title>
-  <link rel="stylesheet" href="/styles.css">
-</head>
+<html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Upwork × ClickUp</title><link rel="stylesheet" href="/styles.css"></head>
 <body>
-  <div class="login" id="login">
-    <form class="login-card" id="loginForm">
-      <div class="brand-mark">CO</div>
-      <p class="eyebrow">MANAGEMENT SPACE</p>
-      <h1>Creator Operations</h1>
-      <p class="muted">Робочий стан команди в одному місці.</p>
-      <label for="password">Пароль</label>
-      <input id="password" type="password" autocomplete="current-password" placeholder="Введіть пароль" required>
-      <button type="submit">Відкрити dashboard</button>
-      <p class="form-error" id="loginError" role="alert"></p>
-    </form>
-  </div>
-
-  <main class="app hidden" id="app">
-    <header>
-      <div>
-        <p class="eyebrow">CREATOR OPERATIONS</p>
-        <h1>Команда сьогодні</h1>
-        <p class="muted" id="updatedAt">Оновлюємо дані…</p>
-      </div>
-      <div class="header-actions">
-        <button class="secondary" id="refreshButton">Оновити</button>
-        <button class="icon-button" id="logoutButton" aria-label="Вийти">↗</button>
-      </div>
-    </header>
-
-    <section class="metrics" id="metrics" aria-label="Загальні показники"></section>
-
-    <section class="section">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">НАВАНТАЖЕННЯ</p>
-          <h2>Хто над чим працює</h2>
-        </div>
-        <p class="muted">Натисніть на людину, щоб побачити її задачі</p>
-      </div>
-      <div class="people" id="people"></div>
-    </section>
-
-    <section class="section task-section">
-      <div class="section-heading task-heading">
-        <div>
-          <p class="eyebrow">УСІ ЗАДАЧІ</p>
-          <h2 id="taskTitle">Робочий список</h2>
-        </div>
-        <span class="result-count" id="resultCount"></span>
-      </div>
-
-      <div class="filters">
-        <label class="search">
-          <span>⌕</span>
-          <input id="searchInput" type="search" placeholder="Пошук задачі">
-        </label>
-        <select id="personFilter" aria-label="Виконавець"><option value="all">Усі виконавці</option></select>
-        <select id="statusFilter" aria-label="Статус"><option value="all">Усі статуси</option></select>
-        <select id="dueFilter" aria-label="Дедлайн">
-          <option value="all">Будь-який дедлайн</option>
-          <option value="overdue">Прострочені</option>
-          <option value="today">На сьогодні</option>
-          <option value="week">На 7 днів</option>
-          <option value="none">Без дедлайну</option>
-        </select>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Задача</th><th>Виконавець</th><th>Статус</th><th>Дедлайн</th><th>Пріоритет</th><th></th></tr></thead>
-          <tbody id="taskRows"></tbody>
-        </table>
-        <div class="empty hidden" id="emptyState">За цими фільтрами задач немає.</div>
-      </div>
-    </section>
-  </main>
-  <script type="module" src="/dashboard.js"></script>
-</body>
-</html>
+<div class="login" id="login"><form class="login-card" id="loginForm"><div class="brand-mark">UC</div><p class="eyebrow">PROJECT ROUTER</p><h1>Upwork × ClickUp</h1><p class="muted">Зіставлення чатів із чинними проєктами.</p><label for="password">Пароль</label><input id="password" type="password" required><button type="submit">Відкрити</button><p class="form-error" id="loginError"></p></form></div>
+<main class="app hidden" id="app">
+  <header><div><p class="eyebrow">PROJECT ROUTER</p><h1>Чати та проєкти</h1><p class="muted" id="updatedAt"></p></div><div class="header-actions"><button class="secondary" id="refreshButton">Оновити</button><button class="icon-button" id="logoutButton">↗</button></div></header>
+  <section class="metrics" id="metrics"></section>
+  <section class="grid">
+    <article class="panel"><div class="section-heading"><div><p class="eyebrow">ПОТРІБЕН ВИБІР</p><h2>Нові Upwork-чати</h2></div></div><div id="pending"></div></article>
+    <article class="panel"><div class="section-heading"><div><p class="eyebrow">CLICKUP</p><h2>Активні проєкти</h2></div></div><input class="search-input" id="projectSearch" type="search" placeholder="Пошук проєкту"><div class="project-list" id="projects"></div></article>
+  </section>
+  <section class="panel"><div class="section-heading"><div><p class="eyebrow">ЗВʼЯЗКИ</p><h2>Привʼязані кімнати</h2></div></div><div id="mappings"></div></section>
+  <section class="panel"><div class="section-heading"><div><p class="eyebrow">СПОВІЩЕННЯ</p><h2>Telegram-теги відповідальних</h2></div><button id="saveTags">Зберегти</button></div><div class="tag-grid" id="tags"></div><p class="muted" id="tagStatus"></p></section>
+</main><script type="module" src="/dashboard.js"></script></body></html>

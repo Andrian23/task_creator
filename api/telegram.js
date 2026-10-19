@@ -21,6 +21,7 @@ import {
   createClickUpTask,
   getClickUpMembers,
 } from '../lib/clickup.js';
+import { resolvePendingUpworkEvent } from '../lib/upwork.js';
 import { extractDocumentText } from '../lib/documents.js';
 import {
   protectVerbatimSections,
@@ -101,6 +102,15 @@ export default async function handler(req, res) {
       }
     }
     const callback = update && update.callback_query;
+
+    if (callback?.data?.startsWith('uw:')) {
+      const [, nonce, taskId] = callback.data.split(':');
+      const result = await resolvePendingUpworkEvent(nonce, taskId);
+      await answerCallbackQuery(callback.id, result.error ? 'Вибір уже неактуальний.' : 'Проєкт привʼязано');
+      if (!result.error) await sendMessage(callback.message.chat.id, `Готово: чат привʼязано до «${result.project.name}».`);
+      res.status(200).json({ ok: true });
+      return;
+    }
 
     if (callback?.data?.startsWith('links:')) {
       const chatId = callback.message.chat.id;

@@ -1,6 +1,11 @@
-# Creator Task Bot
+# Creator Task Bot + Upwork Tracker
 
 Telegram -> GPT-4o-mini -> ClickUp.
+
+Додатково Chrome-розширення з `extension/upwork-tracker` пасивно читає вже
+завантажений DOM Upwork Messages і передає нові повідомлення backend. Backend
+прибирає дублікати, зіставляє room з активною задачею-проєктом у ClickUp і додає
+повідомлення коментарем. Нові ClickUp-задачі в цьому потоці не створюються.
 
 Кидаєш боту завдання в будь-якій формі — текстом, скріншотом, PDF, DOCX,
 TXT/Markdown/CSV або поєднанням файла з коротким підписом.
@@ -34,13 +39,14 @@ TXT/Markdown/CSV або поєднанням файла з коротким пі
 | `UPSTASH_REDIS_URL` | REST URL безкоштовної Upstash Redis бази (для пам'яті діалогу) |
 | `UPSTASH_REDIS_TOKEN` | REST token тієї ж бази |
 | `DASHBOARD_PASSWORD` | спільний пароль для management dashboard на `/dashboard` |
+| `TELEGRAM_UPWORK_CHAT_ID` | ID Telegram-групи для Upwork-сповіщень і вибору проєкту |
 
 ## Management dashboard
 
-Сторінка `/dashboard` показує задачі поточного ClickUp List, статуси, дедлайни,
-навантаження виконавців і прострочення. Дані доступні лише після введення
-`DASHBOARD_PASSWORD`; якщо змінну не задано, використовується пароль `1742`.
-ClickUp API token ніколи не передається у браузер.
+Сторінка `/dashboard` показує нові Upwork-чати, активні ClickUp-проєкти та
+збережені відповідності room ID → task ID. Тут можна вручну зіставляти чати й
+налаштувати Telegram-теги відповідальних. Dashboard працює лише коли задано
+`DASHBOARD_PASSWORD`. ClickUp API token ніколи не передається у браузер.
 
 ### Звідки взяти Upstash
 
