@@ -19,6 +19,7 @@ async function load(password = state.password) {
 
 function render() {
   const { pending, projects, mappings, members, assigneeTags } = state.data;
+  $('#storageAlert').classList.toggle('hidden', !state.data.storageError);
   $('#metrics').innerHTML = [['Чекають matching', pending.length], ['Активні проєкти', projects.length], ['Привʼязані чати', mappings.length]].map(([label, count]) => `<article class="metric"><p>${label}</p><strong>${count}</strong></article>`).join('');
   $('#pending').innerHTML = pending.map((item) => `<div class="chat-card"><strong>${escapeHtml(item.event.topic || item.event.author || item.event.roomId)}</strong><p>${escapeHtml(item.event.message)}</p><small>${escapeHtml(item.event.author)}</small><div class="match-row"><select data-select="${item.nonce}"><option value="">Оберіть проєкт</option>${projects.map((project) => `<option value="${project.id}" ${item.candidateIds.includes(project.id) ? 'data-suggested="true"' : ''}>${item.candidateIds.includes(project.id) ? '★ ' : ''}${escapeHtml(project.name)}</option>`).join('')}</select><button data-match="${item.nonce}">Привʼязати</button></div></div>`).join('') || '<p class="empty">Нових чатів для зіставлення немає.</p>';
   renderProjects();

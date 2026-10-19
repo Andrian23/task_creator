@@ -10,7 +10,7 @@ globalThis.fetch = async (url, options = {}) => {
   const value = String(url);
   if (value.startsWith(process.env.UPSTASH_REDIS_URL)) {
     const [command] = JSON.parse(options.body);
-    if (command === 'KEYS') return response({ result: [] });
+    if (command === 'SCAN') return response({ result: ['0', []] });
   }
   if (value.endsWith('/member')) return response({ members: [{ id: 42, username: 'Оля' }] });
   if (value.includes('/list/123/task')) return response({ tasks: [{ id: 'project-1', name: 'Project Alpha', url: 'https://app.clickup.com/t/project-1', status: { status: 'active' }, assignees: [{ id: 42, username: 'Оля' }] }] });

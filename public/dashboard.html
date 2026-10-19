@@ -4,6 +4,7 @@
 <div class="login" id="login"><form class="login-card" id="loginForm"><div class="brand-mark">UC</div><p class="eyebrow">PROJECT ROUTER</p><h1>Upwork × ClickUp</h1><p class="muted">Зіставлення чатів із чинними проєктами.</p><label for="password">Пароль</label><input id="password" type="password" required><button type="submit">Відкрити</button><p class="form-error" id="loginError"></p></form></div>
 <main class="app hidden" id="app">
   <header><div><p class="eyebrow">PROJECT ROUTER</p><h1>Чати та проєкти</h1><p class="muted" id="updatedAt"></p></div><div class="header-actions"><button class="secondary" id="refreshButton">Оновити</button><button class="icon-button" id="logoutButton">↗</button></div></header>
+  <div class="alert hidden" id="storageAlert">Redis недоступний. ClickUp-проєкти завантажено, але matching і збереження звʼязків тимчасово не працюють.</div>
   <section class="metrics" id="metrics"></section>
   <section class="grid">
     <article class="panel"><div class="section-heading"><div><p class="eyebrow">ПОТРІБЕН ВИБІР</p><h2>Нові Upwork-чати</h2></div></div><div id="pending"></div></article>

@@ -12,13 +12,24 @@ function unauthorized(res) {
 }
 
 async function dashboardData() {
-  const [projects, members, pendingRows, mappingRows, assigneeRows] = await Promise.all([
+  const [projects, members] = await Promise.all([
     getActiveClickUpProjects(),
     getClickUpMembers(),
-    listJson('upwork:pending:*'),
-    listJson('upwork:room:*'),
-    listJson('upwork:assignee:*'),
   ]);
+  let pendingRows = [];
+  let mappingRows = [];
+  let assigneeRows = [];
+  let storageError = null;
+  try {
+    [pendingRows, mappingRows, assigneeRows] = await Promise.all([
+      listJson('upwork:pending:*'),
+      listJson('upwork:room:*'),
+      listJson('upwork:assignee:*'),
+    ]);
+  } catch (error) {
+    console.error('Redis dashboard error:', error);
+    storageError = 'REDIS_UNAVAILABLE';
+  }
   return {
     fetchedAt: Date.now(),
     projects,
@@ -26,6 +37,7 @@ async function dashboardData() {
     pending: pendingRows.filter(({ value }) => value).map(({ key, value }) => ({ nonce: key.slice('upwork:pending:'.length), ...value })),
     mappings: mappingRows.filter(({ value }) => value).map(({ key, value }) => ({ roomId: key.slice('upwork:room:'.length), ...value })),
     assigneeTags: Object.fromEntries(assigneeRows.map(({ key, value }) => [key.slice('upwork:assignee:'.length), value])),
+    storageError,
   };
 }
 
