@@ -57,18 +57,34 @@ function readCurrentRoomForRegistration() {
   if (!roomId) return null;
   const stories = [...document.querySelectorAll('.up-d-story-item [data-test="story-container"]')];
   const latest = stories.at(-1);
+  const topic = cleanText(document.querySelector('[data-test="room-subtitle"]')?.textContent
+    || document.querySelector('[data-test="room-title"]')?.textContent);
+  const history = stories.slice(-200).map((story) => {
+    const outgoing = story.matches('[data-test*="outgoing"], .is-self, .own-message')
+      || Boolean(story.querySelector('[data-test*="outgoing"], .is-self, .own-message'));
+    return {
+      roomId,
+      messageId: story.getAttribute("data-message-id") || story.id || "",
+      author: cleanText(story.querySelector(".user-name")?.textContent),
+      topic,
+      message: cleanText(story.querySelector('[data-test="story-message"]')?.textContent).slice(0, MAX_MESSAGE_LENGTH),
+      direction: outgoing ? "outgoing" : "incoming",
+      timestamp: cleanText(story.querySelector("time")?.getAttribute("datetime") || story.querySelector("time")?.textContent),
+      url: location.href
+    };
+  }).filter((event) => event.message);
   return {
     roomId,
     messageId: latest?.getAttribute("data-message-id") || latest?.id || "",
     author: cleanText(latest?.querySelector(".user-name")?.textContent),
-    topic: cleanText(document.querySelector('[data-test="room-subtitle"]')?.textContent
-      || document.querySelector('[data-test="room-title"]')?.textContent),
+    topic,
     message: cleanText(latest?.querySelector('[data-test="story-message"]')?.textContent) || "Чат додано для привʼязки",
     timestamp: cleanText(latest?.querySelector("time")?.getAttribute("datetime") || latest?.querySelector("time")?.textContent),
     direction: latest?.matches('[data-test*="outgoing"], .is-self, .own-message')
       || Boolean(latest?.querySelector('[data-test*="outgoing"], .is-self, .own-message')) ? "outgoing" : "incoming",
     unread: false,
-    url: location.href
+    url: location.href,
+    history
   };
 }
 
