@@ -23,6 +23,7 @@ import {
 } from '../lib/clickup.js';
 import { getPendingUpworkOptions, resolvePendingUpworkEvent } from '../lib/upwork.js';
 import { extractDocumentText } from '../lib/documents.js';
+import { answerProjectQuestion, extractAssistantQuestion } from '../lib/project-assistant.js';
 import {
   protectVerbatimSections,
   restoreVerbatimSections,
@@ -218,6 +219,29 @@ export default async function handler(req, res) {
 
     const chatId = message.chat.id;
     const text = (message.text || message.caption || '').trim();
+
+    const isUpworkChat = String(chatId) === String(process.env.TELEGRAM_UPWORK_CHAT_ID || '');
+    if (isUpworkChat) {
+      const question = extractAssistantQuestion(text, process.env.TELEGRAM_BOT_USERNAME);
+      if (question !== null) {
+        if (!question) {
+          await sendMessage(chatId, 'Напиши запит після /ai. Наприклад: /ai Які зараз ризики по проєктах?');
+        } else {
+          await sendMessage(chatId, 'Аналізую переписки…');
+          try {
+            const answer = await answerProjectQuestion(question);
+            for (let offset = 0; offset < answer.length; offset += 3900) {
+              await sendMessage(chatId, answer.slice(offset, offset + 3900));
+            }
+          } catch (error) {
+            console.error('Project assistant error:', error);
+            await sendMessage(chatId, 'Не вдалося проаналізувати переписки. Перевір OPENAI_API_KEY і спробуй ще раз.');
+          }
+        }
+      }
+      res.status(200).json({ ok: true });
+      return;
+    }
 
     if (text === '/start') {
       await sendMessage(

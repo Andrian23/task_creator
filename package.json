@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node --env-file=.env.local --watch dev-server.js",
     "poll": "node --env-file=.env.local dev-server.js",
-    "test": "node test/smoke.mjs && node test/dashboard.mjs && node test/upwork.mjs && node --check extension/upwork-tracker/src/content.js && node --check extension/upwork-tracker/src/background.js"
+    "test": "node test/smoke.mjs && node test/dashboard.mjs && node test/upwork.mjs && node test/project-assistant.mjs && node --check extension/upwork-tracker/src/content.js && node --check extension/upwork-tracker/src/background.js"
   },
   "engines": {
     "node": "22.x"
