@@ -21,7 +21,7 @@ import {
   createClickUpTask,
   getClickUpMembers,
 } from '../lib/clickup.js';
-import { resolvePendingUpworkEvent } from '../lib/upwork.js';
+import { getPendingUpworkOptions, resolvePendingUpworkEvent } from '../lib/upwork.js';
 import { extractDocumentText } from '../lib/documents.js';
 import {
   protectVerbatimSections,
@@ -102,6 +102,25 @@ export default async function handler(req, res) {
       }
     }
     const callback = update && update.callback_query;
+
+    if (callback?.data?.startsWith('uwopen:')) {
+      const nonce = callback.data.slice('uwopen:'.length);
+      const options = await getPendingUpworkOptions(nonce);
+      if (!options) {
+        await answerCallbackQuery(callback.id, 'Цей вибір уже неактуальний.');
+      } else {
+        await answerCallbackQuery(callback.id, 'Оберіть проєкт');
+        const keyboard = options.projects.map((project) => [{
+          text: project.name.slice(0, 50),
+          callback_data: `uw:${nonce}:${project.id}`.slice(0, 64),
+        }]);
+        await sendMessage(callback.message.chat.id, 'До якого ClickUp-проєкту приєднати цей чат?', {
+          reply_markup: { inline_keyboard: keyboard },
+        });
+      }
+      res.status(200).json({ ok: true });
+      return;
+    }
 
     if (callback?.data?.startsWith('uw:')) {
       const [, nonce, taskId] = callback.data.split(':');
