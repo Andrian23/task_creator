@@ -3,7 +3,7 @@
   "name": "Upwork Project Tracker",
   "version": "2.0.0",
   "description": "Passively reads loaded Upwork Messages and forwards new messages to the project backend.",
-  "permissions": ["storage"],
+  "permissions": ["storage", "activeTab"],
   "host_permissions": [
     "https://*.vercel.app/*",
     "http://localhost:*/*"

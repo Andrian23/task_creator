@@ -1,4 +1,5 @@
-const DEFAULT_SETTINGS = { enabled: true, backendUrl: "" };
+const DEFAULT_BACKEND_URL = "https://task-creator-lp69.vercel.app";
+const DEFAULT_SETTINGS = { enabled: true };
 
 chrome.runtime.onInstalled.addListener(async () => {
   const settings = await chrome.storage.local.get(DEFAULT_SETTINGS);
@@ -14,10 +15,14 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     testBackend().then(sendResponse);
     return true;
   }
+  if (request.type === "REGISTER_ROOM") {
+    registerRoom(request.room).then(sendResponse);
+    return true;
+  }
 });
 
-function endpoint(backendUrl) {
-  return `${backendUrl.replace(/\/$/, "")}/api/upwork-events`;
+function endpoint() {
+  return `${DEFAULT_BACKEND_URL}/api/upwork-events`;
 }
 
 async function settings() {
@@ -26,16 +31,17 @@ async function settings() {
 
 async function forwardEvents(events) {
   const config = await settings();
-  if (!config.enabled || !config.backendUrl) return { ok: false, error: "NOT_CONFIGURED" };
-  const stored = await chrome.storage.local.get("roomFingerprints");
+  if (!config.enabled) return { ok: false, error: "DISABLED" };
+  const stored = await chrome.storage.local.get(["roomFingerprints", "trackedRoomIds"]);
   const fingerprints = stored.roomFingerprints || {};
+  const trackedRoomIds = new Set(stored.trackedRoomIds || []);
   const results = [];
-  for (const event of events) {
+  for (const event of events.filter((item) => trackedRoomIds.has(item.roomId))) {
     const fingerprint = [event.messageId, event.author, event.message, event.timestamp].join("|");
     if (fingerprints[event.roomId] === fingerprint) continue;
     const discovery = !fingerprints[event.roomId];
     try {
-      const response = await fetch(endpoint(config.backendUrl), {
+      const response = await fetch(endpoint(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...event, discovery })
@@ -50,11 +56,27 @@ async function forwardEvents(events) {
   return { ok: results.every((result) => result.ok), results };
 }
 
+async function registerRoom(room) {
+  if (!room?.roomId) return { ok: false, error: "Відкрийте конкретний Upwork-чат." };
+  const stored = await chrome.storage.local.get(["trackedRoomIds", "roomFingerprints"]);
+  const trackedRoomIds = new Set(stored.trackedRoomIds || []);
+  if (trackedRoomIds.has(room.roomId)) return { ok: true, alreadyTracked: true };
+  const response = await fetch(endpoint(), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...room, discovery: true, registration: true })
+  });
+  if (!response.ok) return { ok: false, error: `Backend HTTP ${response.status}` };
+  trackedRoomIds.add(room.roomId);
+  const fingerprints = stored.roomFingerprints || {};
+  fingerprints[room.roomId] = [room.messageId, room.author, room.message, room.timestamp].join("|");
+  await chrome.storage.local.set({ trackedRoomIds: [...trackedRoomIds], roomFingerprints: fingerprints });
+  return { ok: true };
+}
+
 async function testBackend() {
-  const config = await settings();
-  if (!config.backendUrl) return { ok: false, error: "Вкажіть URL backend." };
   try {
-    const response = await fetch(endpoint(config.backendUrl));
+    const response = await fetch(endpoint());
     return response.ok ? { ok: true } : { ok: false, error: `HTTP ${response.status}` };
   } catch (error) {
     return { ok: false, error: error.message };

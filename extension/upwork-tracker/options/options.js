@@ -1,14 +1,12 @@
-const backendUrl = document.getElementById("backendUrl");
 const enabled = document.getElementById("enabled");
 const status = document.getElementById("status");
 
 async function restore() {
-  const saved = await chrome.storage.local.get({ enabled: true, backendUrl: "" });
+  const saved = await chrome.storage.local.get({ enabled: true });
   enabled.checked = saved.enabled;
-  backendUrl.value = saved.backendUrl;
 }
 async function save() {
-  await chrome.storage.local.set({ enabled: enabled.checked, backendUrl: backendUrl.value.trim().replace(/\/$/, "") });
+  await chrome.storage.local.set({ enabled: enabled.checked });
   status.textContent = "Збережено.";
 }
 document.getElementById("save").addEventListener("click", save);

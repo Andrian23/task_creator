@@ -5,6 +5,7 @@ const event = validateUpworkEvent({ roomId: 'room_1', author: 'Client', topic: '
 assert.ok(event);
 assert.strictEqual(event.discovery, false);
 assert.strictEqual(validateUpworkEvent({ roomId: 'room_2', message: 'Existing', discovery: true }).discovery, true);
+assert.strictEqual(validateUpworkEvent({ roomId: 'room_3', message: 'Register', registration: true }).registration, true);
 assert.strictEqual(validateUpworkEvent({ roomId: '', message: 'Hello' }), null);
 assert.strictEqual(validateUpworkEvent({ roomId: 'room_fake', author: 'Maxime est vitae', message: 'Quisque fringilla risus nec tortor dignissim semper incidunt lectus pharetra' }), null);
 assert.strictEqual(validateUpworkEvent({ roomId: 'room_anna', author: 'Anna Kekliak', message: 'Our reply' }), null);
