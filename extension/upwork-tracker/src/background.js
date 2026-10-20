@@ -37,7 +37,7 @@ async function forwardEvents(events) {
   const trackedRoomIds = new Set(stored.trackedRoomIds || []);
   const results = [];
   for (const event of events.filter((item) => trackedRoomIds.has(item.roomId))) {
-    const fingerprint = [event.messageId, event.author, event.message, event.timestamp].join("|");
+    const fingerprint = [event.messageId, event.author, event.direction, event.message, event.timestamp].join("|");
     if (fingerprints[event.roomId] === fingerprint) continue;
     const discovery = !fingerprints[event.roomId];
     try {
@@ -69,7 +69,7 @@ async function registerRoom(room) {
   if (!response.ok) return { ok: false, error: `Backend HTTP ${response.status}` };
   trackedRoomIds.add(room.roomId);
   const fingerprints = stored.roomFingerprints || {};
-  fingerprints[room.roomId] = [room.messageId, room.author, room.message, room.timestamp].join("|");
+  fingerprints[room.roomId] = [room.messageId, room.author, room.direction, room.message, room.timestamp].join("|");
   await chrome.storage.local.set({ trackedRoomIds: [...trackedRoomIds], roomFingerprints: fingerprints });
   return { ok: true };
 }

@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "mammoth": "^1.12.0",
-    "pdf-parse": "^2.4.5"
+    "pdf-parse": "^2.4.5",
+    "postgres": "^3.4.7"
   }
 }

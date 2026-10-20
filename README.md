@@ -40,10 +40,22 @@ TXT/Markdown/CSV або поєднанням файла з коротким пі
 | `UPSTASH_REDIS_TOKEN` | REST token тієї ж бази |
 | `DASHBOARD_PASSWORD` | спільний пароль для management dashboard на `/dashboard` |
 | `TELEGRAM_UPWORK_CHAT_ID` | ID Telegram-групи для Upwork-сповіщень і вибору проєкту |
+| `DATABASE_URL` | PostgreSQL connection string для довготривалої історії Upwork-повідомлень |
 
 Також підтримуються стандартні назви інтеграцій Vercel/Upstash:
 `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` або
 `KV_REST_API_URL` + `KV_REST_API_TOKEN`.
+
+`POSTGRES_URL` також підтримується як альтернатива `DATABASE_URL`. Якщо PostgreSQL
+ще не підключено, Telegram/ClickUp flow продовжує працювати, але історія
+повідомлень не накопичується.
+
+## Історія Upwork
+
+Після ручного додавання чату розширення зберігає в PostgreSQL нові вхідні та
+вихідні повідомлення. Відповіді Anna Kekliak і Karyna Korniienko зберігаються
+для майбутнього контексту, але не надсилаються в Telegram і не додаються в
+ClickUp. Таблиці створюються автоматично при першій події.
 
 ## Management dashboard
 
