@@ -1,4 +1,5 @@
 const DOM_CHANGE_DEBOUNCE_MS = 600;
+const PERIODIC_SCAN_MS = 15_000;
 const MAX_MESSAGE_LENGTH = 4000;
 let scanTimer;
 
@@ -105,6 +106,7 @@ function scheduleScan() {
 }
 
 scan();
+setInterval(scan, PERIODIC_SCAN_MS);
 const observer = new MutationObserver(scheduleScan);
 observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
 
