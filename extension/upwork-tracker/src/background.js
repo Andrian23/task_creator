@@ -39,7 +39,7 @@ async function forwardEvents(events) {
   for (const event of events.filter((item) => trackedRoomIds.has(item.roomId))) {
     const fingerprint = [event.messageId, event.author, event.direction, event.message, event.timestamp].join("|");
     if (fingerprints[event.roomId] === fingerprint) continue;
-    const discovery = !fingerprints[event.roomId];
+    const discovery = !fingerprints[event.roomId] && !event.unread;
     try {
       const response = await fetch(endpoint(), {
         method: "POST",

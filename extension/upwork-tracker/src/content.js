@@ -8,23 +8,46 @@ function cleanText(value) {
 }
 
 function roomIdFromElement(element) {
-  return element.id || element.getAttribute("href")?.match(/rooms\/(room_[^?]+)/)?.[1] || "";
+  const elementId = element.id?.match(/room_[a-z0-9]+/i)?.[0];
+  return elementId || element.getAttribute("href")?.match(/rooms\/(room_[^?&#/]+)/)?.[1] || "";
+}
+
+function previewDetails(room) {
+  const messageElement = room.querySelector(".last-message .up-d-message, .room-list-item-story .up-d-message");
+  const preview = cleanText(messageElement?.textContent);
+  const outgoingMatch = preview.match(/^(?:You|Ви):\s*(.*)$/i);
+  if (outgoingMatch) {
+    return { author: "You", message: outgoingMatch[1], direction: "outgoing" };
+  }
+  const incomingMatch = preview.match(/^([^:]{1,120}):\s*(.+)$/);
+  if (incomingMatch) {
+    return { author: cleanText(incomingMatch[1]), message: cleanText(incomingMatch[2]), direction: "incoming" };
+  }
+  return {
+    author: cleanText(room.querySelector('[data-test="room-name"]')?.textContent),
+    message: preview,
+    direction: "incoming"
+  };
 }
 
 function readRoomList() {
   return [...document.querySelectorAll('[data-test="room-list-item"]')].map((room) => {
-    const messageElement = room.querySelector(".last-message .up-d-message");
-    const message = cleanText(messageElement?.textContent);
-    const outgoing = message.startsWith("You:");
+    const preview = previewDetails(room);
+    const unreadBadge = room.querySelector('[data-test="unread-notification-badge"]');
+    const unreadCount = Number.parseInt(cleanText(unreadBadge?.textContent), 10);
     return {
       roomId: roomIdFromElement(room),
-      messageId: messageElement?.closest("[data-message-id]")?.getAttribute("data-message-id") || "",
-      author: cleanText(room.querySelector('[data-test="room-name"]')?.textContent),
+      messageId: "",
+      author: preview.author,
       topic: cleanText(room.querySelector('[data-test="room-topic-or-subtitle"]')?.textContent),
-      message: (outgoing ? message.replace(/^You:\s*/, "") : message).slice(0, MAX_MESSAGE_LENGTH),
-      direction: outgoing ? "outgoing" : "incoming",
-      timestamp: cleanText(room.querySelector("time")?.getAttribute("datetime") || room.querySelector("time")?.textContent),
-      unread: Boolean(room.querySelector('[data-test="unread-notification-badge"]')),
+      message: preview.message.slice(0, MAX_MESSAGE_LENGTH),
+      direction: preview.direction,
+      timestamp: cleanText(room.querySelector("time")?.getAttribute("datetime")
+        || room.querySelector("time")?.textContent
+        || room.querySelector(".timestamp")?.textContent),
+      unread: Boolean(unreadBadge || room.querySelector(".right-content.unread")),
+      unreadCount: Number.isFinite(unreadCount) ? unreadCount : 0,
+      source: "room-list",
       url: new URL(room.getAttribute("href") || location.href, location.origin).href
     };
   }).filter((event) => event.roomId && event.message);
@@ -49,6 +72,8 @@ function readOpenConversation() {
     direction: outgoing ? "outgoing" : "incoming",
     timestamp: cleanText(latest.querySelector("time")?.getAttribute("datetime") || latest.querySelector("time")?.textContent),
     unread: true,
+    unreadCount: 1,
+    source: "open-conversation",
     url: location.href
   };
 }

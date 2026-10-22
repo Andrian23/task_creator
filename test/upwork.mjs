@@ -6,6 +6,8 @@ assert.ok(event);
 assert.strictEqual(event.discovery, false);
 assert.strictEqual(validateUpworkEvent({ roomId: 'room_2', message: 'Existing', discovery: true }).discovery, true);
 assert.strictEqual(validateUpworkEvent({ roomId: 'room_3', message: 'Register', registration: true }).registration, true);
+assert.strictEqual(validateUpworkEvent({ roomId: 'room_unread', message: 'New', unreadCount: 4 }).unreadCount, 4);
+assert.strictEqual(validateUpworkEvent({ roomId: 'room_open', message: 'New', source: 'open-conversation' }).source, 'open-conversation');
 assert.strictEqual(validateUpworkEvent({ roomId: '', message: 'Hello' }), null);
 assert.strictEqual(validateUpworkEvent({ roomId: 'room_fake', author: 'Maxime est vitae', message: 'Quisque fringilla risus nec tortor dignissim semper incidunt lectus pharetra' }), null);
 assert.strictEqual(validateUpworkEvent({ roomId: 'room_anna', author: 'Anna Kekliak', message: 'Our reply' }).direction, 'outgoing');
