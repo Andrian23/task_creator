@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Genjutsu Light · Video Generator</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/video-generator.css">
+</head>
+<body>
+<div class="login" id="login">
+  <form class="login-card" id="loginForm">
+    <div class="brand-mark">VG</div>
+    <p class="eyebrow">HIGGSFIELD</p>
+    <h1>Video Generator</h1>
+    <p class="muted">Вхід із паролем наявної адмінки.</p>
+    <label for="password">Пароль</label>
+    <input id="password" type="password" required autocomplete="current-password">
+    <button type="submit">Відкрити</button>
+    <p class="form-error" id="loginError"></p>
+  </form>
+</div>
+
+<main class="app generator-app hidden" id="app">
+  <header>
+    <div>
+      <p class="eyebrow">HIGGSFIELD · GENJUTSU LIGHT</p>
+      <h1>Генератор відео</h1>
+      <p class="muted">Motion transfer із референсами персонажа або сцени.</p>
+    </div>
+    <div class="header-actions">
+      <a class="button-link secondary" href="/dashboard">До dashboard</a>
+      <button class="icon-button" id="logoutButton" type="button" title="Вийти">↗</button>
+    </div>
+  </header>
+
+  <div class="notice">
+    Модель використовує перші 15 секунд вхідного відео та зберігає його звук.
+    Генерація платна за актуальними тарифами Higgsfield.
+  </div>
+
+  <section class="generator-grid">
+    <form class="panel generator-form" id="generatorForm">
+      <div class="section-heading"><div><p class="eyebrow">ДОСТУП</p><h2>API та файли</h2></div></div>
+
+      <label class="field-label" for="apiKey">Higgsfield API-ключ</label>
+      <div class="secret-field">
+        <input id="apiKey" type="password" placeholder="KEY_ID:KEY_SECRET" autocomplete="off" spellcheck="false" required>
+        <button class="secondary compact" id="toggleKey" type="button">Показати</button>
+      </div>
+      <p class="field-help">Ключ живе лише в памʼяті цієї вкладки та передається backend у заголовку.</p>
+
+      <label class="field-label" for="videoInput">Вхідне відео MP4</label>
+      <label class="drop-zone" for="videoInput"><strong>Оберіть один MP4</strong><span>До 250 МБ</span></label>
+      <input class="visually-hidden" id="videoInput" type="file" accept="video/mp4" required>
+      <div class="video-source hidden" id="videoSource"><video id="videoPreview" controls playsinline></video><div><strong id="videoName"></strong><button class="text-button" id="removeVideo" type="button">Видалити</button></div></div>
+
+      <label class="field-label" for="imageInput">Зображення персонажа або сцени</label>
+      <label class="drop-zone" for="imageInput"><strong>Додайте 1–8 зображень</strong><span>JPEG, PNG, WebP або GIF · до 20 МБ кожне</span></label>
+      <input class="visually-hidden" id="imageInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple required>
+      <div class="image-grid" id="imageGrid"></div>
+
+      <label class="field-label" for="prompt">Промпт</label>
+      <textarea id="prompt" maxlength="10000" rows="13" required>Replace the man wearing a black T-shirt and dancing in the source video with the character from the provided reference image. Use the reference image as the sole visual reference for the replacement character. Preserve his facial structure, short hairstyle, clean-shaven appearance, skin tone, apparent age, and body proportions. Reproduce the olive military uniform, shoulder boards, medals, belt, and other visible clothing details from the image. Replace the entire character, including his face, hair, body, and clothing. Match the original dancer’s movements, choreography, timing, posture, and position in every frame. Make the uniform move naturally with the dance. Preserve the source video’s background, camera movement, framing, and other people or objects. Do not introduce the French flag or the background from the reference image. Adapt the character’s lighting and shadows to the video. Maintain a consistent face and outfit throughout. No beautification, facial reshaping, identity drift, flickering, distorted hands, or extra limbs.</textarea>
+      <div class="field-meta"><span>До 10 000 символів</span><span id="promptCount"></span></div>
+
+      <label class="field-label" for="resolution">Роздільна здатність</label>
+      <select id="resolution"><option value="480p" selected>480p</option><option value="720p">720p</option><option value="1080p">1080p</option></select>
+
+      <button class="generate-button" id="generateButton" type="submit">Згенерувати відео</button>
+      <p class="form-error" id="formError" role="alert"></p>
+    </form>
+
+    <aside>
+      <section class="panel status-panel">
+        <div class="section-heading"><div><p class="eyebrow">СТАН</p><h2>Обробка</h2></div></div>
+        <div class="restore hidden" id="restore"><p>Збережено незавершений request_id.</p><code id="savedRequestId"></code><button id="restoreButton" type="button">Відновити перевірку</button></div>
+        <ol class="steps" id="steps"><li class="active">Додайте файли та запустіть генерацію.</li></ol>
+        <p class="muted request-id hidden" id="requestRow">Request ID: <code id="requestId"></code></p>
+      </section>
+
+      <section class="panel result-panel hidden" id="resultPanel">
+        <div class="section-heading"><div><p class="eyebrow">РЕЗУЛЬТАТ</p><h2>Готове відео</h2></div></div>
+        <video id="resultVideo" controls playsinline></video>
+        <div class="result-actions"><a id="openResult" target="_blank" rel="noopener">Відкрити</a><a id="downloadResult" download target="_blank" rel="noopener">Скачати</a></div>
+        <p class="muted" id="resultExpiry"></p>
+      </section>
+    </aside>
+  </section>
+</main>
+<script type="module" src="/video-generator.js"></script>
+</body>
+</html>

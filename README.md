@@ -75,6 +75,25 @@ ClickUp. Під час додавання чату також імпортуют
 налаштувати Telegram-теги відповідальних. Dashboard працює лише коли задано
 `DASHBOARD_PASSWORD`. ClickUp API token ніколи не передається у браузер.
 
+## Higgsfield Video Generator
+
+Сторінка `/video-generator` запускає Higgsfield Genjutsu Light через захищений
+backend route `/api/video-generator`. Вона використовує той самий
+`DASHBOARD_PASSWORD`, що й dashboard. Higgsfield API-ключ користувач вводить у
+форматі `KEY_ID:KEY_SECRET`: ключ не зберігається в localStorage, cookies, Redis,
+PostgreSQL або файлах і передається backend лише в заголовку запиту.
+
+MP4 та 1–8 зображень завантажуються безпосередньо на presigned storage URL,
+отриманий backend від Higgsfield. Це обходить обмеження Vercel на розмір body та
+не тримає serverless function відкритою під час генерації. Backend зберігає в
+Redis лише тимчасові upload IDs і public URLs без API-ключа. `request_id`
+зберігається у `sessionStorage`, тому після оновлення сторінки polling можна
+відновити, повторно ввівши Higgsfield API-ключ.
+
+Локально статичну сторінку та serverless route зручно перевіряти через
+`vercel dev`. Для production достатньо звичайного Vercel deployment; нових env
+vars не потрібно, якщо `DASHBOARD_PASSWORD` і Redis уже налаштовані.
+
 ### Звідки взяти Upstash
 
 Потрібна безкоштовна Redis-база, щоб бот пам'ятав діалог між повідомленнями

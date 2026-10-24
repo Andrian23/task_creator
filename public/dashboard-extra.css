@@ -1,0 +1,8 @@
+.action-link {
+  display: inline-grid;
+  place-items: center;
+  height: 40px;
+  padding: 0 15px;
+  border-radius: 10px;
+  text-decoration: none;
+}
